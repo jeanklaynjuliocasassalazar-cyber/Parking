@@ -36,7 +36,7 @@ class SeguridadActivity : AppCompatActivity() {
     private lateinit var btnRegistrarEntrada: Button
     private lateinit var btnRegistrarSalida: Button
     private lateinit var btnCerrarSesion: Button
-
+    private lateinit var btnVerHistorial: Button
     private var vehiculoActual: VehiculoSeguridad? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,6 +93,9 @@ class SeguridadActivity : AppCompatActivity() {
 
         btnCerrarSesion =
             findViewById(R.id.btnCerrarSesionSeguridad)
+
+        btnVerHistorial =
+            findViewById(R.id.btnVerHistorial)
     }
 
     private fun mostrarDatosUsuario() {
@@ -116,6 +119,16 @@ class SeguridadActivity : AppCompatActivity() {
 
         btnCerrarSesion.setOnClickListener {
             cerrarSesion()
+        }
+
+        btnVerHistorial.setOnClickListener {
+
+            val intent = Intent(
+                this,
+                HistorialActivity::class.java
+            )
+
+            startActivity(intent)
         }
     }
 

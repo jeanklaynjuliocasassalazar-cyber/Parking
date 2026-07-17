@@ -23,6 +23,10 @@
         <activity
             android:name=".AlumnoActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".HistorialActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

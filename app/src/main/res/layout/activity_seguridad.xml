@@ -149,6 +149,13 @@
         </LinearLayout>
 
         <Button
+            android:id="@+id/btnVerHistorial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="VER HISTORIAL" />
+
+        <Button
             android:id="@+id/btnCerrarSesionSeguridad"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
