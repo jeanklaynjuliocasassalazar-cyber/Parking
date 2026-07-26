@@ -4,16 +4,20 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.EditText
-import android.widget.LinearLayout
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import pe.edu.idat.idatparking.data.SessionManager
 import pe.edu.idat.idatparking.entity.VehiculoSeguridad
 import pe.edu.idat.idatparking.repository.SeguridadRepository
+import java.util.Locale
 
 class SeguridadActivity : AppCompatActivity() {
 
@@ -22,10 +26,19 @@ class SeguridadActivity : AppCompatActivity() {
 
     private lateinit var txtBienvenida: TextView
     private lateinit var edtPlacaBuscar: EditText
-    private lateinit var btnBuscar: Button
+    private lateinit var spnPlacasRegistradas: Spinner
+    private lateinit var btnBuscar: MaterialButton
     private lateinit var txtMensajeBusqueda: TextView
 
-    private lateinit var contenedorResultado: LinearLayout
+    private lateinit var contenedorResultado:
+            MaterialCardView
+
+    private lateinit var cardEstadoSolicitud:
+            MaterialCardView
+
+    private lateinit var cardEstadoMovimiento:
+            MaterialCardView
+
     private lateinit var txtUsuarioVehiculo: TextView
     private lateinit var txtCorreoVehiculo: TextView
     private lateinit var txtPlacaVehiculo: TextView
@@ -33,109 +46,282 @@ class SeguridadActivity : AppCompatActivity() {
     private lateinit var txtEstadoSolicitud: TextView
     private lateinit var txtEstadoMovimiento: TextView
 
-    private lateinit var btnRegistrarEntrada: Button
-    private lateinit var btnRegistrarSalida: Button
-    private lateinit var btnCerrarSesion: Button
-    private lateinit var btnVerHistorial: Button
-    private var vehiculoActual: VehiculoSeguridad? = null
+    private lateinit var btnRegistrarEntrada:
+            MaterialButton
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    private lateinit var btnRegistrarSalida:
+            MaterialButton
+
+    private lateinit var btnCerrarSesion:
+            MaterialButton
+
+    private lateinit var btnVerHistorial:
+            MaterialButton
+
+    private var vehiculoActual:
+            VehiculoSeguridad? = null
+
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_seguridad)
 
-        sessionManager = SessionManager(this)
-        seguridadRepository = SeguridadRepository(this)
+        sessionManager =
+            SessionManager(this)
+
+        seguridadRepository =
+            SeguridadRepository(this)
+
+        if (!sessionManager.existeSesion()) {
+            regresarAlLogin()
+            return
+        }
 
         enlazarControles()
         mostrarDatosUsuario()
+        configurarComboPlacas()
         configurarEventos()
+        cargarPlacasRegistradas()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (
+            ::spnPlacasRegistradas.isInitialized
+        ) {
+            cargarPlacasRegistradas()
+        }
     }
 
     private fun enlazarControles() {
         txtBienvenida =
-            findViewById(R.id.txtBienvenidaSeguridad)
+            findViewById(
+                R.id.txtBienvenidaSeguridad
+            )
 
         edtPlacaBuscar =
-            findViewById(R.id.edtPlacaBuscar)
+            findViewById(
+                R.id.edtPlacaBuscar
+            )
+
+        spnPlacasRegistradas =
+            findViewById(
+                R.id.spnPlacasRegistradas
+            )
 
         btnBuscar =
-            findViewById(R.id.btnBuscarVehiculo)
+            findViewById(
+                R.id.btnBuscarVehiculo
+            )
 
         txtMensajeBusqueda =
-            findViewById(R.id.txtMensajeBusqueda)
+            findViewById(
+                R.id.txtMensajeBusqueda
+            )
 
         contenedorResultado =
-            findViewById(R.id.contenedorResultadoVehiculo)
+            findViewById(
+                R.id.contenedorResultadoVehiculo
+            )
+
+        cardEstadoSolicitud =
+            findViewById(
+                R.id.cardEstadoSolicitudSeguridad
+            )
+
+        cardEstadoMovimiento =
+            findViewById(
+                R.id.cardEstadoMovimientoSeguridad
+            )
 
         txtUsuarioVehiculo =
-            findViewById(R.id.txtUsuarioVehiculo)
+            findViewById(
+                R.id.txtUsuarioVehiculo
+            )
 
         txtCorreoVehiculo =
-            findViewById(R.id.txtCorreoVehiculo)
+            findViewById(
+                R.id.txtCorreoVehiculo
+            )
 
         txtPlacaVehiculo =
-            findViewById(R.id.txtPlacaVehiculo)
+            findViewById(
+                R.id.txtPlacaVehiculo
+            )
 
         txtDetalleVehiculo =
-            findViewById(R.id.txtDetalleVehiculoSeguridad)
+            findViewById(
+                R.id.txtDetalleVehiculoSeguridad
+            )
 
         txtEstadoSolicitud =
-            findViewById(R.id.txtEstadoSolicitudSeguridad)
+            findViewById(
+                R.id.txtEstadoSolicitudSeguridad
+            )
 
         txtEstadoMovimiento =
-            findViewById(R.id.txtEstadoMovimientoSeguridad)
+            findViewById(
+                R.id.txtEstadoMovimientoSeguridad
+            )
 
         btnRegistrarEntrada =
-            findViewById(R.id.btnRegistrarEntrada)
+            findViewById(
+                R.id.btnRegistrarEntrada
+            )
 
         btnRegistrarSalida =
-            findViewById(R.id.btnRegistrarSalida)
+            findViewById(
+                R.id.btnRegistrarSalida
+            )
 
         btnCerrarSesion =
-            findViewById(R.id.btnCerrarSesionSeguridad)
+            findViewById(
+                R.id.btnCerrarSesionSeguridad
+            )
 
         btnVerHistorial =
-            findViewById(R.id.btnVerHistorial)
+            findViewById(
+                R.id.btnVerHistorial
+            )
     }
 
     private fun mostrarDatosUsuario() {
+        val nombre =
+            sessionManager
+                .obtenerNombre()
+                .ifBlank {
+                    "Seguridad"
+                }
+
         txtBienvenida.text =
-            "Bienvenido, ${sessionManager.obtenerNombre()}"
+            "Bienvenido, $nombre"
+    }
+
+    private fun configurarComboPlacas() {
+        spnPlacasRegistradas
+            .onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    if (position <= 0) {
+                        return
+                    }
+
+                    val placa =
+                        parent
+                            ?.getItemAtPosition(position)
+                            ?.toString()
+                            .orEmpty()
+
+                    if (
+                        placa.isBlank() ||
+                        placa == SIN_PLACAS
+                    ) {
+                        return
+                    }
+
+                    edtPlacaBuscar.setText(placa)
+
+                    edtPlacaBuscar.setSelection(
+                        placa.length
+                    )
+
+                    edtPlacaBuscar.error = null
+
+                    ocultarResultadoActual()
+                }
+
+                override fun onNothingSelected(
+                    parent: AdapterView<*>?
+                ) {
+                    // No se requiere ninguna acción.
+                }
+            }
+    }
+
+    private fun cargarPlacasRegistradas() {
+        val placas =
+            seguridadRepository
+                .listarPlacasRegistradas()
+
+        val opciones =
+            if (placas.isEmpty()) {
+                listOf(SIN_PLACAS)
+            } else {
+                mutableListOf(
+                    SELECCIONE_PLACA
+                ).apply {
+                    addAll(placas)
+                }
+            }
+
+        val adaptador =
+            ArrayAdapter(
+                this,
+                android.R.layout.simple_spinner_item,
+                opciones
+            )
+
+        adaptador.setDropDownViewResource(
+            android.R.layout
+                .simple_spinner_dropdown_item
+        )
+
+        spnPlacasRegistradas.adapter =
+            adaptador
+
+        spnPlacasRegistradas.isEnabled =
+            placas.isNotEmpty()
     }
 
     private fun configurarEventos() {
-
         btnBuscar.setOnClickListener {
             buscarVehiculo()
         }
 
         btnRegistrarEntrada.setOnClickListener {
-            confirmarMovimiento(esEntrada = true)
+            confirmarMovimiento(
+                esEntrada = true
+            )
         }
 
         btnRegistrarSalida.setOnClickListener {
-            confirmarMovimiento(esEntrada = false)
+            confirmarMovimiento(
+                esEntrada = false
+            )
         }
 
         btnCerrarSesion.setOnClickListener {
-            cerrarSesion()
+            confirmarCierreSesion()
         }
 
         btnVerHistorial.setOnClickListener {
-
-            val intent = Intent(
-                this,
-                HistorialActivity::class.java
-            )
+            val intent =
+                Intent(
+                    this,
+                    HistorialActivity::class.java
+                )
 
             startActivity(intent)
         }
     }
 
     private fun buscarVehiculo() {
-
         val placa =
-            edtPlacaBuscar.text.toString().trim()
+            edtPlacaBuscar.text
+                .toString()
+                .trim()
+                .uppercase(Locale.ROOT)
+
+        edtPlacaBuscar.error = null
+        ocultarMensajeBusqueda()
 
         if (placa.isEmpty()) {
             edtPlacaBuscar.error =
@@ -145,38 +331,49 @@ class SeguridadActivity : AppCompatActivity() {
             return
         }
 
+        edtPlacaBuscar.setText(placa)
+
+        edtPlacaBuscar.setSelection(
+            placa.length
+        )
+
         val vehiculo =
             seguridadRepository
                 .buscarVehiculoPorPlaca(placa)
 
         if (vehiculo == null) {
             vehiculoActual = null
-            contenedorResultado.visibility = View.GONE
 
-            txtMensajeBusqueda.text =
-                "No se encontró un vehículo con esa placa."
+            contenedorResultado.visibility =
+                View.GONE
 
-            txtMensajeBusqueda.setTextColor(
-                Color.parseColor("#C62828")
+            btnRegistrarEntrada.visibility =
+                View.GONE
+
+            btnRegistrarSalida.visibility =
+                View.GONE
+
+            mostrarMensajeBusqueda(
+                mensaje =
+                    "No se encontró un vehículo con esa placa.",
+                color =
+                    "#C62828"
             )
-
-            txtMensajeBusqueda.visibility =
-                View.VISIBLE
 
             return
         }
 
         vehiculoActual = vehiculo
-        txtMensajeBusqueda.visibility = View.GONE
-
         mostrarResultado(vehiculo)
     }
 
     private fun mostrarResultado(
         vehiculo: VehiculoSeguridad
     ) {
+        ocultarMensajeBusqueda()
 
-        contenedorResultado.visibility = View.VISIBLE
+        contenedorResultado.visibility =
+            View.VISIBLE
 
         txtUsuarioVehiculo.text =
             vehiculo.nombreUsuario
@@ -185,97 +382,191 @@ class SeguridadActivity : AppCompatActivity() {
             vehiculo.correoUsuario
 
         txtPlacaVehiculo.text =
-            "Placa: ${vehiculo.placa}"
+            vehiculo.placa
+                .uppercase(Locale.ROOT)
 
-        txtDetalleVehiculo.text = """
+        txtDetalleVehiculo.text =
+            """
             Marca: ${vehiculo.marca}
             Color: ${vehiculo.color}
             Tipo: ${vehiculo.tipo}
-        """.trimIndent()
+            """.trimIndent()
 
-        txtEstadoSolicitud.text =
-            "Solicitud: ${vehiculo.solicitudEstado}"
-
-        val colorSolicitud = when (
+        mostrarEstadoSolicitud(
             vehiculo.solicitudEstado
-        ) {
-            "APROBADO" -> "#2E7D32"
-            "RECHAZADO" -> "#C62828"
-            else -> "#EF6C00"
-        }
-
-        txtEstadoSolicitud.setTextColor(
-            Color.parseColor(colorSolicitud)
         )
 
-        if (vehiculo.estaDentro) {
+        mostrarEstadoMovimiento(
+            vehiculo
+        )
 
-            txtEstadoMovimiento.text =
-                "Ubicación: DENTRO DEL ESTACIONAMIENTO\n" +
-                        "Entrada: ${vehiculo.fechaEntrada ?: "-"}"
+        actualizarBotones(
+            vehiculo
+        )
+    }
 
-            txtEstadoMovimiento.setTextColor(
-                Color.parseColor("#C62828")
-            )
+    private fun mostrarEstadoSolicitud(
+        estado: String
+    ) {
+        val estadoNormalizado =
+            estado.uppercase(Locale.ROOT)
 
-        } else {
+        txtEstadoSolicitud.text =
+            estadoNormalizado
 
-            txtEstadoMovimiento.text =
-                "Ubicación: FUERA DEL ESTACIONAMIENTO"
+        when (estadoNormalizado) {
+            "APROBADO" -> {
+                cardEstadoSolicitud
+                    .setCardBackgroundColor(
+                        Color.parseColor(
+                            "#E8F5E9"
+                        )
+                    )
 
-            txtEstadoMovimiento.setTextColor(
-                Color.parseColor("#2E7D32")
-            )
+                txtEstadoSolicitud.setTextColor(
+                    Color.parseColor(
+                        "#2E7D32"
+                    )
+                )
+            }
+
+            "RECHAZADO" -> {
+                cardEstadoSolicitud
+                    .setCardBackgroundColor(
+                        Color.parseColor(
+                            "#FFEBEE"
+                        )
+                    )
+
+                txtEstadoSolicitud.setTextColor(
+                    Color.parseColor(
+                        "#C62828"
+                    )
+                )
+            }
+
+            else -> {
+                cardEstadoSolicitud
+                    .setCardBackgroundColor(
+                        Color.parseColor(
+                            "#FFF3E0"
+                        )
+                    )
+
+                txtEstadoSolicitud.setTextColor(
+                    Color.parseColor(
+                        "#EF6C00"
+                    )
+                )
+            }
         }
+    }
 
-        actualizarBotones(vehiculo)
+    private fun mostrarEstadoMovimiento(
+        vehiculo: VehiculoSeguridad
+    ) {
+        if (vehiculo.estaDentro) {
+            cardEstadoMovimiento
+                .setCardBackgroundColor(
+                    Color.parseColor(
+                        "#FFF3E0"
+                    )
+                )
+
+            txtEstadoMovimiento.setTextColor(
+                Color.parseColor(
+                    "#E65100"
+                )
+            )
+
+            txtEstadoMovimiento.text =
+                """
+                DENTRO DEL ESTACIONAMIENTO
+                Entrada: ${vehiculo.fechaEntrada ?: "-"}
+                """.trimIndent()
+        } else {
+            cardEstadoMovimiento
+                .setCardBackgroundColor(
+                    Color.parseColor(
+                        "#E8F5E9"
+                    )
+                )
+
+            txtEstadoMovimiento.setTextColor(
+                Color.parseColor(
+                    "#2E7D32"
+                )
+            )
+
+            txtEstadoMovimiento.text =
+                "FUERA DEL ESTACIONAMIENTO"
+        }
     }
 
     private fun actualizarBotones(
         vehiculo: VehiculoSeguridad
     ) {
-
         if (
-            vehiculo.solicitudEstado != "APROBADO"
+            vehiculo.solicitudEstado
+                .uppercase(Locale.ROOT) !=
+            "APROBADO"
         ) {
-            btnRegistrarEntrada.visibility = View.GONE
-            btnRegistrarSalida.visibility = View.GONE
+            btnRegistrarEntrada.visibility =
+                View.GONE
+
+            btnRegistrarSalida.visibility =
+                View.GONE
+
             return
         }
 
         if (vehiculo.estaDentro) {
-            btnRegistrarEntrada.visibility = View.GONE
-            btnRegistrarSalida.visibility = View.VISIBLE
+            btnRegistrarEntrada.visibility =
+                View.GONE
+
+            btnRegistrarSalida.visibility =
+                View.VISIBLE
         } else {
-            btnRegistrarEntrada.visibility = View.VISIBLE
-            btnRegistrarSalida.visibility = View.GONE
+            btnRegistrarEntrada.visibility =
+                View.VISIBLE
+
+            btnRegistrarSalida.visibility =
+                View.GONE
         }
     }
 
     private fun confirmarMovimiento(
         esEntrada: Boolean
     ) {
+        val vehiculo =
+            vehiculoActual ?: return
 
-        val vehiculo = vehiculoActual ?: return
-
-        val accion = if (esEntrada) {
-            "entrada"
-        } else {
-            "salida"
-        }
+        val accion =
+            if (esEntrada) {
+                "entrada"
+            } else {
+                "salida"
+            }
 
         AlertDialog.Builder(this)
-            .setTitle("Registrar $accion")
+            .setTitle(
+                "Registrar $accion"
+            )
             .setMessage(
                 "¿Confirmas la $accion del vehículo ${vehiculo.placa}?"
             )
-            .setPositiveButton("CONFIRMAR") { _, _ ->
+            .setPositiveButton(
+                "CONFIRMAR"
+            ) { _, _ ->
                 procesarMovimiento(
                     vehiculo = vehiculo,
                     esEntrada = esEntrada
                 )
             }
-            .setNegativeButton("CANCELAR", null)
+            .setNegativeButton(
+                "CANCELAR",
+                null
+            )
             .show()
     }
 
@@ -283,16 +574,18 @@ class SeguridadActivity : AppCompatActivity() {
         vehiculo: VehiculoSeguridad,
         esEntrada: Boolean
     ) {
-
-        val resultado = if (esEntrada) {
-            seguridadRepository.registrarEntrada(
-                vehiculo.vehiculoId
-            )
-        } else {
-            seguridadRepository.registrarSalida(
-                vehiculo.vehiculoId
-            )
-        }
+        val resultado =
+            if (esEntrada) {
+                seguridadRepository
+                    .registrarEntrada(
+                        vehiculo.vehiculoId
+                    )
+            } else {
+                seguridadRepository
+                    .registrarSalida(
+                        vehiculo.vehiculoId
+                    )
+            }
 
         Toast.makeText(
             this,
@@ -305,20 +598,86 @@ class SeguridadActivity : AppCompatActivity() {
         }
     }
 
+    private fun mostrarMensajeBusqueda(
+        mensaje: String,
+        color: String
+    ) {
+        txtMensajeBusqueda.text =
+            mensaje
+
+        txtMensajeBusqueda.setTextColor(
+            Color.parseColor(color)
+        )
+
+        txtMensajeBusqueda.visibility =
+            View.VISIBLE
+    }
+
+    private fun ocultarMensajeBusqueda() {
+        txtMensajeBusqueda.text = ""
+
+        txtMensajeBusqueda.visibility =
+            View.GONE
+    }
+
+    private fun ocultarResultadoActual() {
+        vehiculoActual = null
+
+        contenedorResultado.visibility =
+            View.GONE
+
+        btnRegistrarEntrada.visibility =
+            View.GONE
+
+        btnRegistrarSalida.visibility =
+            View.GONE
+
+        ocultarMensajeBusqueda()
+    }
+
+    private fun confirmarCierreSesion() {
+        AlertDialog.Builder(this)
+            .setTitle("Cerrar sesión")
+            .setMessage(
+                "¿Está seguro de que desea salir de IDAT Parking?"
+            )
+            .setPositiveButton(
+                "SÍ"
+            ) { _, _ ->
+                cerrarSesion()
+            }
+            .setNegativeButton(
+                "CANCELAR",
+                null
+            )
+            .show()
+    }
+
     private fun cerrarSesion() {
-
         sessionManager.cerrarSesion()
+        regresarAlLogin()
+    }
 
-        val intent = Intent(
-            this,
-            MainActivity::class.java
-        ).apply {
-            flags =
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
+    private fun regresarAlLogin() {
+        val intent =
+            Intent(
+                this,
+                MainActivity::class.java
+            ).apply {
+                flags =
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
 
         startActivity(intent)
         finish()
+    }
+
+    companion object {
+        private const val SELECCIONE_PLACA =
+            "Selecciona una placa registrada"
+
+        private const val SIN_PLACAS =
+            "No hay placas registradas"
     }
 }

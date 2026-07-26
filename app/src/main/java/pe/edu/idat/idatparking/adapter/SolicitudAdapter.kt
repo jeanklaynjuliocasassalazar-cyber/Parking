@@ -3,11 +3,12 @@ package pe.edu.idat.idatparking.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import pe.edu.idat.idatparking.R
 import pe.edu.idat.idatparking.entity.SolicitudSupervisor
+import java.util.Locale
 
 class SolicitudAdapter(
     private var solicitudes: List<SolicitudSupervisor>,
@@ -20,28 +21,44 @@ class SolicitudAdapter(
     ) : RecyclerView.ViewHolder(itemView) {
 
         val txtNombre: TextView =
-            itemView.findViewById(R.id.txtNombreSolicitud)
+            itemView.findViewById(
+                R.id.txtNombreSolicitud
+            )
 
         val txtCorreo: TextView =
-            itemView.findViewById(R.id.txtCorreoSolicitud)
+            itemView.findViewById(
+                R.id.txtCorreoSolicitud
+            )
 
         val txtPlaca: TextView =
-            itemView.findViewById(R.id.txtPlacaSolicitud)
+            itemView.findViewById(
+                R.id.txtPlacaSolicitud
+            )
 
         val txtDetalles: TextView =
-            itemView.findViewById(R.id.txtDetallesSolicitud)
+            itemView.findViewById(
+                R.id.txtDetallesSolicitud
+            )
 
         val txtFecha: TextView =
-            itemView.findViewById(R.id.txtFechaSolicitud)
+            itemView.findViewById(
+                R.id.txtFechaSolicitud
+            )
 
         val txtEstado: TextView =
-            itemView.findViewById(R.id.txtEstadoItemSolicitud)
+            itemView.findViewById(
+                R.id.txtEstadoItemSolicitud
+            )
 
-        val btnAprobar: Button =
-            itemView.findViewById(R.id.btnAprobarSolicitud)
+        val btnAprobar: MaterialButton =
+            itemView.findViewById(
+                R.id.btnAprobarSolicitud
+            )
 
-        val btnRechazar: Button =
-            itemView.findViewById(R.id.btnRechazarSolicitud)
+        val btnRechazar: MaterialButton =
+            itemView.findViewById(
+                R.id.btnRechazarSolicitud
+            )
     }
 
     override fun onCreateViewHolder(
@@ -49,13 +66,14 @@ class SolicitudAdapter(
         viewType: Int
     ): SolicitudViewHolder {
 
-        val vista = LayoutInflater
-            .from(parent.context)
-            .inflate(
-                R.layout.item_solicitud,
-                parent,
-                false
-            )
+        val vista =
+            LayoutInflater
+                .from(parent.context)
+                .inflate(
+                    R.layout.item_solicitud,
+                    parent,
+                    false
+                )
 
         return SolicitudViewHolder(vista)
     }
@@ -64,8 +82,8 @@ class SolicitudAdapter(
         holder: SolicitudViewHolder,
         position: Int
     ) {
-
-        val solicitud = solicitudes[position]
+        val solicitud =
+            solicitudes[position]
 
         holder.txtNombre.text =
             solicitud.nombreUsuario
@@ -74,19 +92,22 @@ class SolicitudAdapter(
             solicitud.correoUsuario
 
         holder.txtPlaca.text =
-            "Placa: ${solicitud.placa}"
+            solicitud.placa
+                .uppercase(Locale.ROOT)
 
-        holder.txtDetalles.text = """
+        holder.txtDetalles.text =
+            """
             Marca: ${solicitud.marca}
             Color: ${solicitud.color}
             Tipo: ${solicitud.tipo}
-        """.trimIndent()
+            """.trimIndent()
 
         holder.txtFecha.text =
-            "Fecha: ${solicitud.fechaSolicitud}"
+            "Solicitud registrada: ${solicitud.fechaSolicitud}"
 
         holder.txtEstado.text =
-            "Estado: ${solicitud.estado}"
+            solicitud.estado
+                .uppercase(Locale.ROOT)
 
         holder.btnAprobar.setOnClickListener {
             onAprobar(solicitud)

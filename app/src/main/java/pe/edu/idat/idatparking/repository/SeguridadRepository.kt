@@ -11,6 +11,39 @@ class SeguridadRepository(context: Context) {
 
     private val dbHelper =
         AppDatabaseHelper(context.applicationContext)
+    fun listarPlacasRegistradas(): List<String> {
+        val placas =
+            mutableListOf<String>()
+
+        val db =
+            dbHelper.readableDatabase
+
+        val consulta = """
+        SELECT placa
+        FROM ${AppDatabaseHelper.TABLA_VEHICULOS}
+        ORDER BY UPPER(placa) ASC
+    """.trimIndent()
+
+        val cursor =
+            db.rawQuery(
+                consulta,
+                null
+            )
+
+        cursor.use {
+            while (it.moveToNext()) {
+                placas.add(
+                    it.getString(
+                        it.getColumnIndexOrThrow(
+                            "placa"
+                        )
+                    )
+                )
+            }
+        }
+
+        return placas
+    }
 
     fun buscarVehiculoPorPlaca(
         placa: String
