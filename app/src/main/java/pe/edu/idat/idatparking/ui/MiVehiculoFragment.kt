@@ -11,7 +11,9 @@ import com.google.android.material.card.MaterialCardView
 import pe.edu.idat.idatparking.R
 import pe.edu.idat.idatparking.RegistroVehiculoActivity
 import pe.edu.idat.idatparking.data.SessionManager
+import pe.edu.idat.idatparking.entity.SolicitudDetalle
 import pe.edu.idat.idatparking.repository.RegistroRepository
+import java.util.Locale
 
 class MiVehiculoFragment :
     Fragment(R.layout.fragment_mi_vehiculo) {
@@ -32,6 +34,9 @@ class MiVehiculoFragment :
     private lateinit var txtFecha: TextView
 
     private lateinit var btnRegistrar: MaterialButton
+    private lateinit var btnEditarReenviar: MaterialButton
+
+    private var solicitudActual: SolicitudDetalle? = null
 
     override fun onViewCreated(
         view: View,
@@ -52,7 +57,9 @@ class MiVehiculoFragment :
         configurarEventos()
     }
 
-    private fun enlazarControles(view: View) {
+    private fun enlazarControles(
+        view: View
+    ) {
         cardSinVehiculo =
             view.findViewById(
                 R.id.cardSinVehiculo
@@ -107,16 +114,20 @@ class MiVehiculoFragment :
             view.findViewById(
                 R.id.btnRegistrarMiVehiculo
             )
+
+        btnEditarReenviar =
+            view.findViewById(
+                R.id.btnEditarReenviarSolicitud
+            )
     }
 
     private fun configurarEventos() {
         btnRegistrar.setOnClickListener {
-            val intent = Intent(
-                requireContext(),
-                RegistroVehiculoActivity::class.java
-            )
+            abrirRegistroNuevo()
+        }
 
-            startActivity(intent)
+        btnEditarReenviar.setOnClickListener {
+            abrirCorreccionSolicitud()
         }
     }
 
@@ -134,6 +145,9 @@ class MiVehiculoFragment :
                 .obtenerSolicitudPorUsuario(
                     usuarioId
                 )
+
+        solicitudActual =
+            solicitud
 
         if (solicitud == null) {
             mostrarEstadoSinVehiculo()
@@ -158,15 +172,21 @@ class MiVehiculoFragment :
             "Solicitud registrada: ${solicitud.fechaSolicitud}"
 
         configurarEstadoSolicitud(
-            solicitud.estado
+            solicitud
         )
     }
 
     private fun mostrarEstadoSinVehiculo() {
+        solicitudActual =
+            null
+
         cardSinVehiculo.visibility =
             View.VISIBLE
 
         cardVehiculoRegistrado.visibility =
+            View.GONE
+
+        btnEditarReenviar.visibility =
             View.GONE
     }
 
@@ -179,10 +199,13 @@ class MiVehiculoFragment :
     }
 
     private fun configurarEstadoSolicitud(
-        estado: String
+        solicitud: SolicitudDetalle
     ) {
         val estadoNormalizado =
-            estado.uppercase()
+            solicitud.estado
+                .uppercase(
+                    Locale.ROOT
+                )
 
         txtEstado.text =
             estadoNormalizado
@@ -194,14 +217,37 @@ class MiVehiculoFragment :
                     colorTexto = "#2E7D32",
                     mensaje = "Tu vehículo está autorizado para ingresar al estacionamiento."
                 )
+
+                btnEditarReenviar.visibility =
+                    View.GONE
             }
 
             "RECHAZADO" -> {
+                val observacion =
+                    solicitud.observacion
+                        ?.trim()
+                        .orEmpty()
+
+                val mensaje =
+                    if (observacion.isEmpty()) {
+                        "La solicitud fue rechazada por el supervisor. Corrige los datos y vuelve a enviarla."
+                    } else {
+                        """
+                        La solicitud fue rechazada por el supervisor.
+
+                        Motivo:
+                        $observacion
+                        """.trimIndent()
+                    }
+
                 aplicarEstiloEstado(
                     colorFondo = "#FFEBEE",
                     colorTexto = "#C62828",
-                    mensaje = "La solicitud fue rechazada por el supervisor."
+                    mensaje = mensaje
                 )
+
+                btnEditarReenviar.visibility =
+                    View.VISIBLE
             }
 
             else -> {
@@ -210,6 +256,9 @@ class MiVehiculoFragment :
                     colorTexto = "#EF6C00",
                     mensaje = "Tu solicitud está pendiente de revisión."
                 )
+
+                btnEditarReenviar.visibility =
+                    View.GONE
             }
         }
     }
@@ -219,15 +268,91 @@ class MiVehiculoFragment :
         colorTexto: String,
         mensaje: String
     ) {
-        cardEstadoSolicitud.setCardBackgroundColor(
-            Color.parseColor(colorFondo)
-        )
+        cardEstadoSolicitud
+            .setCardBackgroundColor(
+                Color.parseColor(
+                    colorFondo
+                )
+            )
 
         txtEstado.setTextColor(
-            Color.parseColor(colorTexto)
+            Color.parseColor(
+                colorTexto
+            )
         )
 
         txtMensajeEstado.text =
             mensaje
+    }
+
+    private fun abrirRegistroNuevo() {
+        val intent =
+            Intent(
+                requireContext(),
+                RegistroVehiculoActivity::class.java
+            )
+
+        startActivity(
+            intent
+        )
+    }
+
+    private fun abrirCorreccionSolicitud() {
+        val solicitud =
+            solicitudActual ?: return
+
+        if (
+            solicitud.estado
+                .uppercase(
+                    Locale.ROOT
+                ) != "RECHAZADO"
+        ) {
+            return
+        }
+
+        val intent =
+            Intent(
+                requireContext(),
+                RegistroVehiculoActivity::class.java
+            ).apply {
+                putExtra(
+                    RegistroVehiculoActivity.EXTRA_MODO_EDICION,
+                    true
+                )
+
+                putExtra(
+                    RegistroVehiculoActivity.EXTRA_VEHICULO_ID,
+                    solicitud.vehiculoId
+                )
+
+                putExtra(
+                    RegistroVehiculoActivity.EXTRA_SOLICITUD_ID,
+                    solicitud.solicitudId
+                )
+
+                putExtra(
+                    RegistroVehiculoActivity.EXTRA_PLACA,
+                    solicitud.placa
+                )
+
+                putExtra(
+                    RegistroVehiculoActivity.EXTRA_MARCA,
+                    solicitud.marca
+                )
+
+                putExtra(
+                    RegistroVehiculoActivity.EXTRA_COLOR,
+                    solicitud.color
+                )
+
+                putExtra(
+                    RegistroVehiculoActivity.EXTRA_TIPO,
+                    solicitud.tipo
+                )
+            }
+
+        startActivity(
+            intent
+        )
     }
 }

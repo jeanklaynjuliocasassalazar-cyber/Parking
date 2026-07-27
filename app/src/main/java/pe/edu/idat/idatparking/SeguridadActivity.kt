@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import pe.edu.idat.idatparking.data.SessionManager
+import pe.edu.idat.idatparking.entity.Usuario
 import pe.edu.idat.idatparking.entity.VehiculoSeguridad
 import pe.edu.idat.idatparking.repository.SeguridadRepository
 import java.util.Locale
@@ -70,13 +71,12 @@ class SeguridadActivity : AppCompatActivity() {
         sessionManager =
             SessionManager(this)
 
-        seguridadRepository =
-            SeguridadRepository(this)
-
-        if (!sessionManager.existeSesion()) {
-            regresarAlLogin()
+        if (!validarAcceso()) {
             return
         }
+
+        seguridadRepository =
+            SeguridadRepository(this)
 
         enlazarControles()
         mostrarDatosUsuario()
@@ -88,11 +88,32 @@ class SeguridadActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
+        if (!validarAcceso()) {
+            return
+        }
+
         if (
             ::spnPlacasRegistradas.isInitialized
         ) {
             cargarPlacasRegistradas()
         }
+    }
+
+    private fun validarAcceso(): Boolean {
+        if (
+            sessionManager.tieneRolPermitido(
+                Usuario.ROL_SEGURIDAD
+            )
+        ) {
+            return true
+        }
+
+        if (!isFinishing) {
+            sessionManager.cerrarSesion()
+            regresarAlLogin()
+        }
+
+        return false
     }
 
     private fun enlazarControles() {
@@ -216,7 +237,9 @@ class SeguridadActivity : AppCompatActivity() {
 
                     val placa =
                         parent
-                            ?.getItemAtPosition(position)
+                            ?.getItemAtPosition(
+                                position
+                            )
                             ?.toString()
                             .orEmpty()
 
@@ -227,7 +250,9 @@ class SeguridadActivity : AppCompatActivity() {
                         return
                     }
 
-                    edtPlacaBuscar.setText(placa)
+                    edtPlacaBuscar.setText(
+                        placa
+                    )
 
                     edtPlacaBuscar.setSelection(
                         placa.length
@@ -241,7 +266,6 @@ class SeguridadActivity : AppCompatActivity() {
                 override fun onNothingSelected(
                     parent: AdapterView<*>?
                 ) {
-                    // No se requiere ninguna acción.
                 }
             }
     }
@@ -253,19 +277,24 @@ class SeguridadActivity : AppCompatActivity() {
 
         val opciones =
             if (placas.isEmpty()) {
-                listOf(SIN_PLACAS)
+                listOf(
+                    SIN_PLACAS
+                )
             } else {
                 mutableListOf(
                     SELECCIONE_PLACA
                 ).apply {
-                    addAll(placas)
+                    addAll(
+                        placas
+                    )
                 }
             }
 
         val adaptador =
             ArrayAdapter(
                 this,
-                android.R.layout.simple_spinner_item,
+                android.R.layout
+                    .simple_spinner_item,
                 opciones
             )
 
@@ -309,7 +338,9 @@ class SeguridadActivity : AppCompatActivity() {
                     HistorialActivity::class.java
                 )
 
-            startActivity(intent)
+            startActivity(
+                intent
+            )
         }
     }
 
@@ -318,9 +349,12 @@ class SeguridadActivity : AppCompatActivity() {
             edtPlacaBuscar.text
                 .toString()
                 .trim()
-                .uppercase(Locale.ROOT)
+                .uppercase(
+                    Locale.ROOT
+                )
 
         edtPlacaBuscar.error = null
+
         ocultarMensajeBusqueda()
 
         if (placa.isEmpty()) {
@@ -331,7 +365,9 @@ class SeguridadActivity : AppCompatActivity() {
             return
         }
 
-        edtPlacaBuscar.setText(placa)
+        edtPlacaBuscar.setText(
+            placa
+        )
 
         edtPlacaBuscar.setSelection(
             placa.length
@@ -339,7 +375,9 @@ class SeguridadActivity : AppCompatActivity() {
 
         val vehiculo =
             seguridadRepository
-                .buscarVehiculoPorPlaca(placa)
+                .buscarVehiculoPorPlaca(
+                    placa
+                )
 
         if (vehiculo == null) {
             vehiculoActual = null
@@ -363,8 +401,12 @@ class SeguridadActivity : AppCompatActivity() {
             return
         }
 
-        vehiculoActual = vehiculo
-        mostrarResultado(vehiculo)
+        vehiculoActual =
+            vehiculo
+
+        mostrarResultado(
+            vehiculo
+        )
     }
 
     private fun mostrarResultado(
@@ -383,7 +425,9 @@ class SeguridadActivity : AppCompatActivity() {
 
         txtPlacaVehiculo.text =
             vehiculo.placa
-                .uppercase(Locale.ROOT)
+                .uppercase(
+                    Locale.ROOT
+                )
 
         txtDetalleVehiculo.text =
             """
@@ -409,7 +453,9 @@ class SeguridadActivity : AppCompatActivity() {
         estado: String
     ) {
         val estadoNormalizado =
-            estado.uppercase(Locale.ROOT)
+            estado.uppercase(
+                Locale.ROOT
+            )
 
         txtEstadoSolicitud.text =
             estadoNormalizado
@@ -423,11 +469,12 @@ class SeguridadActivity : AppCompatActivity() {
                         )
                     )
 
-                txtEstadoSolicitud.setTextColor(
-                    Color.parseColor(
-                        "#2E7D32"
+                txtEstadoSolicitud
+                    .setTextColor(
+                        Color.parseColor(
+                            "#2E7D32"
+                        )
                     )
-                )
             }
 
             "RECHAZADO" -> {
@@ -438,11 +485,12 @@ class SeguridadActivity : AppCompatActivity() {
                         )
                     )
 
-                txtEstadoSolicitud.setTextColor(
-                    Color.parseColor(
-                        "#C62828"
+                txtEstadoSolicitud
+                    .setTextColor(
+                        Color.parseColor(
+                            "#C62828"
+                        )
                     )
-                )
             }
 
             else -> {
@@ -453,11 +501,12 @@ class SeguridadActivity : AppCompatActivity() {
                         )
                     )
 
-                txtEstadoSolicitud.setTextColor(
-                    Color.parseColor(
-                        "#EF6C00"
+                txtEstadoSolicitud
+                    .setTextColor(
+                        Color.parseColor(
+                            "#EF6C00"
+                        )
                     )
-                )
             }
         }
     }
@@ -473,11 +522,12 @@ class SeguridadActivity : AppCompatActivity() {
                     )
                 )
 
-            txtEstadoMovimiento.setTextColor(
-                Color.parseColor(
-                    "#E65100"
+            txtEstadoMovimiento
+                .setTextColor(
+                    Color.parseColor(
+                        "#E65100"
+                    )
                 )
-            )
 
             txtEstadoMovimiento.text =
                 """
@@ -492,11 +542,12 @@ class SeguridadActivity : AppCompatActivity() {
                     )
                 )
 
-            txtEstadoMovimiento.setTextColor(
-                Color.parseColor(
-                    "#2E7D32"
+            txtEstadoMovimiento
+                .setTextColor(
+                    Color.parseColor(
+                        "#2E7D32"
+                    )
                 )
-            )
 
             txtEstadoMovimiento.text =
                 "FUERA DEL ESTACIONAMIENTO"
@@ -508,8 +559,9 @@ class SeguridadActivity : AppCompatActivity() {
     ) {
         if (
             vehiculo.solicitudEstado
-                .uppercase(Locale.ROOT) !=
-            "APROBADO"
+                .uppercase(
+                    Locale.ROOT
+                ) != "APROBADO"
         ) {
             btnRegistrarEntrada.visibility =
                 View.GONE
@@ -526,12 +578,29 @@ class SeguridadActivity : AppCompatActivity() {
 
             btnRegistrarSalida.visibility =
                 View.VISIBLE
+
+            return
+        }
+
+        btnRegistrarSalida.visibility =
+            View.GONE
+
+        if (
+            seguridadRepository
+                .estacionamientoLleno()
+        ) {
+            btnRegistrarEntrada.visibility =
+                View.GONE
+
+            mostrarMensajeBusqueda(
+                mensaje =
+                    "El estacionamiento se encuentra lleno. No es posible registrar una nueva entrada.",
+                color =
+                    "#C62828"
+            )
         } else {
             btnRegistrarEntrada.visibility =
                 View.VISIBLE
-
-            btnRegistrarSalida.visibility =
-                View.GONE
         }
     }
 
@@ -548,7 +617,9 @@ class SeguridadActivity : AppCompatActivity() {
                 "salida"
             }
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(
+            this
+        )
             .setTitle(
                 "Registrar $accion"
             )
@@ -559,8 +630,10 @@ class SeguridadActivity : AppCompatActivity() {
                 "CONFIRMAR"
             ) { _, _ ->
                 procesarMovimiento(
-                    vehiculo = vehiculo,
-                    esEntrada = esEntrada
+                    vehiculo =
+                        vehiculo,
+                    esEntrada =
+                        esEntrada
                 )
             }
             .setNegativeButton(
@@ -595,6 +668,15 @@ class SeguridadActivity : AppCompatActivity() {
 
         if (resultado.exito) {
             buscarVehiculo()
+            return
+        }
+
+        if (
+            esEntrada &&
+            seguridadRepository
+                .estacionamientoLleno()
+        ) {
+            buscarVehiculo()
         }
     }
 
@@ -606,7 +688,9 @@ class SeguridadActivity : AppCompatActivity() {
             mensaje
 
         txtMensajeBusqueda.setTextColor(
-            Color.parseColor(color)
+            Color.parseColor(
+                color
+            )
         )
 
         txtMensajeBusqueda.visibility =
@@ -614,7 +698,8 @@ class SeguridadActivity : AppCompatActivity() {
     }
 
     private fun ocultarMensajeBusqueda() {
-        txtMensajeBusqueda.text = ""
+        txtMensajeBusqueda.text =
+            ""
 
         txtMensajeBusqueda.visibility =
             View.GONE
@@ -636,8 +721,12 @@ class SeguridadActivity : AppCompatActivity() {
     }
 
     private fun confirmarCierreSesion() {
-        AlertDialog.Builder(this)
-            .setTitle("Cerrar sesión")
+        AlertDialog.Builder(
+            this
+        )
+            .setTitle(
+                "Cerrar sesión"
+            )
             .setMessage(
                 "¿Está seguro de que desea salir de IDAT Parking?"
             )
@@ -669,7 +758,10 @@ class SeguridadActivity : AppCompatActivity() {
                             Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
 
-        startActivity(intent)
+        startActivity(
+            intent
+        )
+
         finish()
     }
 

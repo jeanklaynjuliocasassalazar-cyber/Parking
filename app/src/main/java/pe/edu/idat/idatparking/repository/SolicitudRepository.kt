@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import pe.edu.idat.idatparking.data.AppDatabaseHelper
 import pe.edu.idat.idatparking.entity.SolicitudSupervisor
+import java.util.Locale
 
 class SolicitudRepository(context: Context) {
 
@@ -12,8 +13,11 @@ class SolicitudRepository(context: Context) {
 
     fun listarSolicitudesPendientes(): List<SolicitudSupervisor> {
 
-        val lista = mutableListOf<SolicitudSupervisor>()
-        val db = dbHelper.readableDatabase
+        val lista =
+            mutableListOf<SolicitudSupervisor>()
+
+        val db =
+            dbHelper.readableDatabase
 
         val consulta = """
             SELECT
@@ -37,73 +41,77 @@ class SolicitudRepository(context: Context) {
             ORDER BY s.id DESC
         """.trimIndent()
 
-        val cursor = db.rawQuery(
-            consulta,
-            arrayOf("PENDIENTE")
-        )
+        val cursor =
+            db.rawQuery(
+                consulta,
+                arrayOf("PENDIENTE")
+            )
 
         cursor.use {
             while (it.moveToNext()) {
 
-                val solicitud = SolicitudSupervisor(
-                    solicitudId = it.getInt(
-                        it.getColumnIndexOrThrow(
-                            "solicitud_id"
-                        )
-                    ),
-                    usuarioId = it.getInt(
-                        it.getColumnIndexOrThrow(
-                            "usuario_id"
-                        )
-                    ),
-                    nombreUsuario = it.getString(
-                        it.getColumnIndexOrThrow(
-                            "usuario_nombre"
-                        )
-                    ),
-                    correoUsuario = it.getString(
-                        it.getColumnIndexOrThrow(
-                            "usuario_correo"
-                        )
-                    ),
-                    vehiculoId = it.getInt(
-                        it.getColumnIndexOrThrow(
-                            "vehiculo_id"
-                        )
-                    ),
-                    placa = it.getString(
-                        it.getColumnIndexOrThrow(
-                            "placa"
-                        )
-                    ),
-                    marca = it.getString(
-                        it.getColumnIndexOrThrow(
-                            "marca"
-                        )
-                    ),
-                    color = it.getString(
-                        it.getColumnIndexOrThrow(
-                            "color"
-                        )
-                    ),
-                    tipo = it.getString(
-                        it.getColumnIndexOrThrow(
-                            "tipo"
-                        )
-                    ),
-                    estado = it.getString(
-                        it.getColumnIndexOrThrow(
-                            "estado"
-                        )
-                    ),
-                    fechaSolicitud = it.getString(
-                        it.getColumnIndexOrThrow(
-                            "fecha_solicitud"
+                val solicitud =
+                    SolicitudSupervisor(
+                        solicitudId = it.getInt(
+                            it.getColumnIndexOrThrow(
+                                "solicitud_id"
+                            )
+                        ),
+                        usuarioId = it.getInt(
+                            it.getColumnIndexOrThrow(
+                                "usuario_id"
+                            )
+                        ),
+                        nombreUsuario = it.getString(
+                            it.getColumnIndexOrThrow(
+                                "usuario_nombre"
+                            )
+                        ),
+                        correoUsuario = it.getString(
+                            it.getColumnIndexOrThrow(
+                                "usuario_correo"
+                            )
+                        ),
+                        vehiculoId = it.getInt(
+                            it.getColumnIndexOrThrow(
+                                "vehiculo_id"
+                            )
+                        ),
+                        placa = it.getString(
+                            it.getColumnIndexOrThrow(
+                                "placa"
+                            )
+                        ),
+                        marca = it.getString(
+                            it.getColumnIndexOrThrow(
+                                "marca"
+                            )
+                        ),
+                        color = it.getString(
+                            it.getColumnIndexOrThrow(
+                                "color"
+                            )
+                        ),
+                        tipo = it.getString(
+                            it.getColumnIndexOrThrow(
+                                "tipo"
+                            )
+                        ),
+                        estado = it.getString(
+                            it.getColumnIndexOrThrow(
+                                "estado"
+                            )
+                        ),
+                        fechaSolicitud = it.getString(
+                            it.getColumnIndexOrThrow(
+                                "fecha_solicitud"
+                            )
                         )
                     )
-                )
 
-                lista.add(solicitud)
+                lista.add(
+                    solicitud
+                )
             }
         }
 
@@ -112,31 +120,68 @@ class SolicitudRepository(context: Context) {
 
     fun actualizarEstado(
         solicitudId: Int,
-        nuevoEstado: String
+        nuevoEstado: String,
+        observacion: String? = null
     ): Boolean {
 
+        val estadoNormalizado =
+            nuevoEstado
+                .trim()
+                .uppercase(Locale.ROOT)
+
         if (
-            nuevoEstado != "APROBADO" &&
-            nuevoEstado != "RECHAZADO"
+            estadoNormalizado != "APROBADO" &&
+            estadoNormalizado != "RECHAZADO"
         ) {
             return false
         }
 
-        val db = dbHelper.writableDatabase
+        val observacionNormalizada =
+            observacion
+                ?.trim()
+                .orEmpty()
 
-        val valores = ContentValues().apply {
-            put("estado", nuevoEstado)
+        if (
+            estadoNormalizado == "RECHAZADO" &&
+            observacionNormalizada.isEmpty()
+        ) {
+            return false
         }
 
-        val filasActualizadas = db.update(
-            AppDatabaseHelper.TABLA_SOLICITUDES,
-            valores,
-            "id = ? AND estado = ?",
-            arrayOf(
-                solicitudId.toString(),
-                "PENDIENTE"
+        val db =
+            dbHelper.writableDatabase
+
+        val valores =
+            ContentValues().apply {
+                put(
+                    "estado",
+                    estadoNormalizado
+                )
+
+                if (
+                    estadoNormalizado == "RECHAZADO"
+                ) {
+                    put(
+                        "observacion",
+                        observacionNormalizada
+                    )
+                } else {
+                    putNull(
+                        "observacion"
+                    )
+                }
+            }
+
+        val filasActualizadas =
+            db.update(
+                AppDatabaseHelper.TABLA_SOLICITUDES,
+                valores,
+                "id = ? AND estado = ?",
+                arrayOf(
+                    solicitudId.toString(),
+                    "PENDIENTE"
+                )
             )
-        )
 
         return filasActualizadas > 0
     }

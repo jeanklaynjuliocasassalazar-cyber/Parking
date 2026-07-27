@@ -4,6 +4,7 @@ import android.content.Context
 import pe.edu.idat.idatparking.data.AppDatabaseHelper
 import pe.edu.idat.idatparking.entity.EstadisticaEstacionamiento
 import pe.edu.idat.idatparking.entity.MovimientoHistorial
+import java.util.Locale
 
 class MovimientoRepository(context: Context) {
 
@@ -53,12 +54,80 @@ class MovimientoRepository(context: Context) {
         }
     }
 
-    fun listarHistorial(): List<MovimientoHistorial> {
+    fun listarHistorial(
+        filtroPlaca: String? = null,
+        estado: String? = null,
+        fecha: String? = null
+    ): List<MovimientoHistorial> {
 
         val lista =
             mutableListOf<MovimientoHistorial>()
 
         val db = dbHelper.readableDatabase
+
+        val condiciones =
+            mutableListOf<String>()
+
+        val argumentos =
+            mutableListOf<String>()
+
+        val placaNormalizada =
+            filtroPlaca
+                ?.trim()
+                .orEmpty()
+
+        if (placaNormalizada.isNotEmpty()) {
+            condiciones.add(
+                "UPPER(v.placa) LIKE ?"
+            )
+
+            argumentos.add(
+                "%${placaNormalizada.uppercase(Locale.ROOT)}%"
+            )
+        }
+
+        val estadoNormalizado =
+            estado
+                ?.trim()
+                .orEmpty()
+                .uppercase(Locale.ROOT)
+
+        if (
+            estadoNormalizado.isNotEmpty() &&
+            estadoNormalizado != "TODOS"
+        ) {
+            condiciones.add(
+                "m.estado = ?"
+            )
+
+            argumentos.add(
+                estadoNormalizado
+            )
+        }
+
+        val fechaNormalizada =
+            fecha
+                ?.trim()
+                .orEmpty()
+
+        if (fechaNormalizada.isNotEmpty()) {
+            condiciones.add(
+                "date(m.fecha_entrada) = ?"
+            )
+
+            argumentos.add(
+                fechaNormalizada
+            )
+        }
+
+        val whereClause =
+            if (condiciones.isEmpty()) {
+                ""
+            } else {
+                "WHERE " + condiciones.joinToString(
+                    separator = " AND "
+                )
+            }
 
         val consulta = """
             SELECT
@@ -73,12 +142,13 @@ class MovimientoRepository(context: Context) {
                 ON v.id = m.vehiculo_id
             INNER JOIN usuarios u
                 ON u.id = v.usuario_id
+            $whereClause
             ORDER BY m.id DESC
         """.trimIndent()
 
         val cursor = db.rawQuery(
             consulta,
-            null
+            argumentos.toTypedArray()
         )
 
         cursor.use {

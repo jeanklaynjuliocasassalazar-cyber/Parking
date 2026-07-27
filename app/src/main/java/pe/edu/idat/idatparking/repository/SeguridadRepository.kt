@@ -11,6 +11,7 @@ class SeguridadRepository(context: Context) {
 
     private val dbHelper =
         AppDatabaseHelper(context.applicationContext)
+
     fun listarPlacasRegistradas(): List<String> {
         val placas =
             mutableListOf<String>()
@@ -19,10 +20,10 @@ class SeguridadRepository(context: Context) {
             dbHelper.readableDatabase
 
         val consulta = """
-        SELECT placa
-        FROM ${AppDatabaseHelper.TABLA_VEHICULOS}
-        ORDER BY UPPER(placa) ASC
-    """.trimIndent()
+            SELECT placa
+            FROM ${AppDatabaseHelper.TABLA_VEHICULOS}
+            ORDER BY UPPER(placa) ASC
+        """.trimIndent()
 
         val cursor =
             db.rawQuery(
@@ -92,10 +93,14 @@ class SeguridadRepository(context: Context) {
             }
 
             val indiceMovimiento =
-                it.getColumnIndexOrThrow("movimiento_id")
+                it.getColumnIndexOrThrow(
+                    "movimiento_id"
+                )
 
             val indiceFechaEntrada =
-                it.getColumnIndexOrThrow("fecha_entrada")
+                it.getColumnIndexOrThrow(
+                    "fecha_entrada"
+                )
 
             val movimientoId =
                 if (it.isNull(indiceMovimiento)) {
@@ -113,36 +118,62 @@ class SeguridadRepository(context: Context) {
 
             return VehiculoSeguridad(
                 vehiculoId = it.getInt(
-                    it.getColumnIndexOrThrow("vehiculo_id")
+                    it.getColumnIndexOrThrow(
+                        "vehiculo_id"
+                    )
                 ),
                 usuarioId = it.getInt(
-                    it.getColumnIndexOrThrow("usuario_id")
+                    it.getColumnIndexOrThrow(
+                        "usuario_id"
+                    )
                 ),
                 nombreUsuario = it.getString(
-                    it.getColumnIndexOrThrow("usuario_nombre")
+                    it.getColumnIndexOrThrow(
+                        "usuario_nombre"
+                    )
                 ),
                 correoUsuario = it.getString(
-                    it.getColumnIndexOrThrow("usuario_correo")
+                    it.getColumnIndexOrThrow(
+                        "usuario_correo"
+                    )
                 ),
                 placa = it.getString(
-                    it.getColumnIndexOrThrow("placa")
+                    it.getColumnIndexOrThrow(
+                        "placa"
+                    )
                 ),
                 marca = it.getString(
-                    it.getColumnIndexOrThrow("marca")
+                    it.getColumnIndexOrThrow(
+                        "marca"
+                    )
                 ),
                 color = it.getString(
-                    it.getColumnIndexOrThrow("color")
+                    it.getColumnIndexOrThrow(
+                        "color"
+                    )
                 ),
                 tipo = it.getString(
-                    it.getColumnIndexOrThrow("tipo")
+                    it.getColumnIndexOrThrow(
+                        "tipo"
+                    )
                 ),
                 solicitudEstado = it.getString(
-                    it.getColumnIndexOrThrow("solicitud_estado")
+                    it.getColumnIndexOrThrow(
+                        "solicitud_estado"
+                    )
                 ),
                 movimientoId = movimientoId,
                 fechaEntrada = fechaEntrada
             )
         }
+    }
+
+    fun estacionamientoLleno(): Boolean {
+        val db =
+            dbHelper.readableDatabase
+
+        return contarVehiculosDentro(db) >=
+                MovimientoRepository.CAPACIDAD_TOTAL
     }
 
     fun registrarEntrada(
@@ -155,7 +186,10 @@ class SeguridadRepository(context: Context) {
         val resultado = try {
 
             when {
-                !solicitudEstaAprobada(db, vehiculoId) -> {
+                !solicitudEstaAprobada(
+                    db,
+                    vehiculoId
+                ) -> {
                     ResultadoMovimiento(
                         exito = false,
                         mensaje = "El vehículo no tiene una solicitud aprobada."
@@ -172,17 +206,35 @@ class SeguridadRepository(context: Context) {
                     )
                 }
 
-                else -> {
-                    val valores = ContentValues().apply {
-                        put("vehiculo_id", vehiculoId)
-                        put("estado", "DENTRO")
-                    }
-
-                    val idMovimiento = db.insert(
-                        AppDatabaseHelper.TABLA_MOVIMIENTOS,
-                        null,
-                        valores
+                contarVehiculosDentro(db) >=
+                        MovimientoRepository.CAPACIDAD_TOTAL -> {
+                    ResultadoMovimiento(
+                        exito = false,
+                        mensaje = "El estacionamiento se encuentra lleno. No es posible registrar una nueva entrada."
                     )
+                }
+
+                else -> {
+                    val valores =
+                        ContentValues().apply {
+                            put(
+                                "vehiculo_id",
+                                vehiculoId
+                            )
+
+                            put(
+                                "estado",
+                                "DENTRO"
+                            )
+                        }
+
+                    val idMovimiento =
+                        db.insert(
+                            AppDatabaseHelper
+                                .TABLA_MOVIMIENTOS,
+                            null,
+                            valores
+                        )
 
                     if (idMovimiento == -1L) {
                         ResultadoMovimiento(
@@ -236,16 +288,17 @@ class SeguridadRepository(context: Context) {
 
             } else {
 
-                val sentencia = db.compileStatement(
-                    """
-                    UPDATE movimientos
-                    SET
-                        fecha_salida = CURRENT_TIMESTAMP,
-                        estado = 'FINALIZADO'
-                    WHERE id = ?
-                    AND estado = 'DENTRO'
-                    """.trimIndent()
-                )
+                val sentencia =
+                    db.compileStatement(
+                        """
+                        UPDATE movimientos
+                        SET
+                            fecha_salida = CURRENT_TIMESTAMP,
+                            estado = 'FINALIZADO'
+                        WHERE id = ?
+                        AND estado = 'DENTRO'
+                        """.trimIndent()
+                    )
 
                 sentencia.bindLong(
                     1,
@@ -282,6 +335,35 @@ class SeguridadRepository(context: Context) {
         return resultado
     }
 
+    private fun contarVehiculosDentro(
+        db: SQLiteDatabase
+    ): Int {
+
+        val consulta = """
+            SELECT COUNT(*) AS total
+            FROM movimientos
+            WHERE estado = 'DENTRO'
+        """.trimIndent()
+
+        val cursor =
+            db.rawQuery(
+                consulta,
+                null
+            )
+
+        cursor.use {
+            if (!it.moveToFirst()) {
+                return 0
+            }
+
+            return it.getInt(
+                it.getColumnIndexOrThrow(
+                    "total"
+                )
+            )
+        }
+    }
+
     private fun solicitudEstaAprobada(
         db: SQLiteDatabase,
         vehiculoId: Int
@@ -295,10 +377,13 @@ class SeguridadRepository(context: Context) {
             LIMIT 1
         """.trimIndent()
 
-        val cursor = db.rawQuery(
-            consulta,
-            arrayOf(vehiculoId.toString())
-        )
+        val cursor =
+            db.rawQuery(
+                consulta,
+                arrayOf(
+                    vehiculoId.toString()
+                )
+            )
 
         cursor.use {
             return it.moveToFirst()
@@ -319,10 +404,13 @@ class SeguridadRepository(context: Context) {
             LIMIT 1
         """.trimIndent()
 
-        val cursor = db.rawQuery(
-            consulta,
-            arrayOf(vehiculoId.toString())
-        )
+        val cursor =
+            db.rawQuery(
+                consulta,
+                arrayOf(
+                    vehiculoId.toString()
+                )
+            )
 
         cursor.use {
             if (!it.moveToFirst()) {
@@ -330,7 +418,9 @@ class SeguridadRepository(context: Context) {
             }
 
             return it.getInt(
-                it.getColumnIndexOrThrow("id")
+                it.getColumnIndexOrThrow(
+                    "id"
+                )
             )
         }
     }

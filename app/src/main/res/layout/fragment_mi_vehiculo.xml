@@ -32,6 +32,7 @@
             android:text="Consulta los datos de tu vehículo y el estado de su solicitud."
             android:textColor="#666666"
             android:textSize="14sp" />
+
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardSinVehiculo"
             android:layout_width="match_parent"
@@ -91,6 +92,7 @@
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
+
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardVehiculoRegistrado"
             android:layout_width="match_parent"
@@ -294,6 +296,19 @@
                     android:text="Solicitud registrada: 2026-07-25"
                     android:textColor="#777777"
                     android:textSize="13sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEditarReenviarSolicitud"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:layout_marginTop="20dp"
+                    android:text="CORREGIR Y REENVIAR"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    app:backgroundTint="#512DA8"
+                    app:cornerRadius="12dp" />
 
             </LinearLayout>
 

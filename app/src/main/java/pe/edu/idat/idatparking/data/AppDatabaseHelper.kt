@@ -14,7 +14,7 @@ class AppDatabaseHelper(context: Context) : SQLiteOpenHelper(
 
     companion object {
         private const val DATABASE_NAME = "idat_parking.db"
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
 
         const val TABLA_USUARIOS = "usuarios"
         const val TABLA_VEHICULOS = "vehiculos"
@@ -30,8 +30,6 @@ class AppDatabaseHelper(context: Context) : SQLiteOpenHelper(
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
-
-        // Activa el control de claves foráneas en SQLite.
         db.setForeignKeyConstraintsEnabled(true)
     }
 
@@ -83,6 +81,7 @@ class AppDatabaseHelper(context: Context) : SQLiteOpenHelper(
                 vehiculo_id INTEGER NOT NULL UNIQUE,
                 estado TEXT NOT NULL DEFAULT 'PENDIENTE',
                 fecha_solicitud TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                observacion TEXT,
                 FOREIGN KEY (usuario_id)
                     REFERENCES $TABLA_USUARIOS(id)
                     ON DELETE CASCADE,
@@ -172,11 +171,13 @@ class AppDatabaseHelper(context: Context) : SQLiteOpenHelper(
         oldVersion: Int,
         newVersion: Int
     ) {
-        db.execSQL("DROP TABLE IF EXISTS $TABLA_MOVIMIENTOS")
-        db.execSQL("DROP TABLE IF EXISTS $TABLA_SOLICITUDES")
-        db.execSQL("DROP TABLE IF EXISTS $TABLA_VEHICULOS")
-        db.execSQL("DROP TABLE IF EXISTS $TABLA_USUARIOS")
-
-        onCreate(db)
+        if (oldVersion < 2) {
+            db.execSQL(
+                """
+                ALTER TABLE $TABLA_SOLICITUDES
+                ADD COLUMN observacion TEXT
+                """.trimIndent()
+            )
+        }
     }
 }

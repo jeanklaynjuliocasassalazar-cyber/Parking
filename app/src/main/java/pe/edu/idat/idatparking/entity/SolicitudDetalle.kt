@@ -8,5 +8,6 @@ data class SolicitudDetalle(
     val color: String,
     val tipo: String,
     val estado: String,
-    val fechaSolicitud: String
+    val fechaSolicitud: String,
+    val observacion: String? = null
 )

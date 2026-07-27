@@ -14,39 +14,77 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import com.google.android.material.navigation.NavigationView
 import pe.edu.idat.idatparking.data.SessionManager
+import pe.edu.idat.idatparking.entity.Usuario
 import pe.edu.idat.idatparking.ui.AcercaFragment
 import pe.edu.idat.idatparking.ui.InicioFragment
 import pe.edu.idat.idatparking.ui.MiVehiculoFragment
 
 class AlumnoActivity : AppCompatActivity() {
 
-    private lateinit var drawerLayout: DrawerLayout
-    private lateinit var navigationView: NavigationView
-    private lateinit var txtTitulo: TextView
+    private lateinit var drawerLayout:
+            DrawerLayout
 
-    private lateinit var btnInicioBottom: LinearLayout
-    private lateinit var btnMenuCentro: LinearLayout
-    private lateinit var btnSalirBottom: LinearLayout
+    private lateinit var navigationView:
+            NavigationView
 
-    private lateinit var imgInicioBottom: ImageView
-    private lateinit var imgMenuBottom: ImageView
-    private lateinit var imgSalirBottom: ImageView
+    private lateinit var txtTitulo:
+            TextView
 
-    private lateinit var txtInicioBottom: TextView
-    private lateinit var txtMenuBottom: TextView
-    private lateinit var txtSalirBottom: TextView
+    private lateinit var btnInicioBottom:
+            LinearLayout
 
-    private lateinit var sessionManager: SessionManager
+    private lateinit var btnMenuCentro:
+            LinearLayout
 
-    private var seccionActualId: Int = R.id.nav_inicio
+    private lateinit var btnSalirBottom:
+            LinearLayout
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_alumno)
+    private lateinit var imgInicioBottom:
+            ImageView
 
-        sessionManager = SessionManager(this)
+    private lateinit var imgMenuBottom:
+            ImageView
 
-        if (!sessionManager.existeSesion()) {
+    private lateinit var imgSalirBottom:
+            ImageView
+
+    private lateinit var txtInicioBottom:
+            TextView
+
+    private lateinit var txtMenuBottom:
+            TextView
+
+    private lateinit var txtSalirBottom:
+            TextView
+
+    private lateinit var sessionManager:
+            SessionManager
+
+    private var seccionActualId: Int =
+        R.id.nav_inicio
+
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
+        super.onCreate(
+            savedInstanceState
+        )
+
+        setContentView(
+            R.layout.activity_alumno
+        )
+
+        sessionManager =
+            SessionManager(this)
+
+        if (
+            !sessionManager
+                .tieneRolPermitido(
+                    Usuario.ROL_ALUMNO,
+                    Usuario.ROL_DOCENTE
+                )
+        ) {
+            sessionManager.cerrarSesion()
             regresarAlLogin()
             return
         }
@@ -59,68 +97,146 @@ class AlumnoActivity : AppCompatActivity() {
 
         if (savedInstanceState == null) {
             mostrarFragmento(
-                fragment = InicioFragment(),
-                titulo = "Inicio",
-                menuItemId = R.id.nav_inicio
+                fragment =
+                    InicioFragment(),
+                titulo =
+                    "Inicio",
+                menuItemId =
+                    R.id.nav_inicio
             )
         }
     }
 
     private fun enlazarControles() {
-        drawerLayout = findViewById(R.id.drawerLayoutAlumno)
-        navigationView = findViewById(R.id.navigationViewAlumno)
-        txtTitulo = findViewById(R.id.txtTituloAlumno)
+        drawerLayout =
+            findViewById(
+                R.id.drawerLayoutAlumno
+            )
 
-        btnInicioBottom = findViewById(R.id.btnInicioBottom)
-        btnMenuCentro = findViewById(R.id.btnMenuCentro)
-        btnSalirBottom = findViewById(R.id.btnSalirBottom)
+        navigationView =
+            findViewById(
+                R.id.navigationViewAlumno
+            )
 
-        imgInicioBottom = findViewById(R.id.imgInicioBottom)
-        imgMenuBottom = findViewById(R.id.imgMenuBottom)
-        imgSalirBottom = findViewById(R.id.imgSalirBottom)
+        txtTitulo =
+            findViewById(
+                R.id.txtTituloAlumno
+            )
 
-        txtInicioBottom = findViewById(R.id.txtInicioBottom)
-        txtMenuBottom = findViewById(R.id.txtMenuBottom)
-        txtSalirBottom = findViewById(R.id.txtSalirBottom)
+        btnInicioBottom =
+            findViewById(
+                R.id.btnInicioBottom
+            )
+
+        btnMenuCentro =
+            findViewById(
+                R.id.btnMenuCentro
+            )
+
+        btnSalirBottom =
+            findViewById(
+                R.id.btnSalirBottom
+            )
+
+        imgInicioBottom =
+            findViewById(
+                R.id.imgInicioBottom
+            )
+
+        imgMenuBottom =
+            findViewById(
+                R.id.imgMenuBottom
+            )
+
+        imgSalirBottom =
+            findViewById(
+                R.id.imgSalirBottom
+            )
+
+        txtInicioBottom =
+            findViewById(
+                R.id.txtInicioBottom
+            )
+
+        txtMenuBottom =
+            findViewById(
+                R.id.txtMenuBottom
+            )
+
+        txtSalirBottom =
+            findViewById(
+                R.id.txtSalirBottom
+            )
     }
 
     private fun configurarCabecera() {
-        val headerView = navigationView.getHeaderView(0)
+        val headerView =
+            navigationView.getHeaderView(
+                0
+            )
 
         val txtHeaderNombre =
-            headerView.findViewById<TextView>(R.id.txtHeaderNombre)
+            headerView.findViewById<TextView>(
+                R.id.txtHeaderNombre
+            )
 
         val txtHeaderCorreo =
-            headerView.findViewById<TextView>(R.id.txtHeaderCorreo)
+            headerView.findViewById<TextView>(
+                R.id.txtHeaderCorreo
+            )
 
         val txtHeaderRol =
-            headerView.findViewById<TextView>(R.id.txtHeaderRol)
+            headerView.findViewById<TextView>(
+                R.id.txtHeaderRol
+            )
 
-        val nombre = sessionManager.obtenerNombre()
-            .ifBlank { "Usuario" }
+        val nombre =
+            sessionManager
+                .obtenerNombre()
+                .ifBlank {
+                    "Usuario"
+                }
 
-        val correo = sessionManager.obtenerCorreo()
-            .ifBlank { "Sin correo registrado" }
+        val correo =
+            sessionManager
+                .obtenerCorreo()
+                .ifBlank {
+                    "Sin correo registrado"
+                }
 
-        val rol = sessionManager.obtenerRol()
-            .ifBlank { "USUARIO" }
+        val rol =
+            sessionManager
+                .obtenerRol()
+                .ifBlank {
+                    "USUARIO"
+                }
 
-        txtHeaderNombre.text = nombre
-        txtHeaderCorreo.text = correo
-        txtHeaderRol.text = rol
+        txtHeaderNombre.text =
+            nombre
+
+        txtHeaderCorreo.text =
+            correo
+
+        txtHeaderRol.text =
+            rol
     }
 
     private fun configurarBarraInferior() {
         btnInicioBottom.setOnClickListener {
             mostrarFragmento(
-                fragment = InicioFragment(),
-                titulo = "Inicio",
-                menuItemId = R.id.nav_inicio
+                fragment =
+                    InicioFragment(),
+                titulo =
+                    "Inicio",
+                menuItemId =
+                    R.id.nav_inicio
             )
         }
 
         btnMenuCentro.setOnClickListener {
-            actualizarEstadoBarraInferior(ESTADO_MENU)
+            actualizarEstadoBarraInferior(
+                ESTADO_MENU
+            )
 
             drawerLayout.openDrawer(
                 GravityCompat.START
@@ -128,50 +244,63 @@ class AlumnoActivity : AppCompatActivity() {
         }
 
         btnSalirBottom.setOnClickListener {
-            actualizarEstadoBarraInferior(ESTADO_SALIR)
+            actualizarEstadoBarraInferior(
+                ESTADO_SALIR
+            )
+
             mostrarConfirmacionCierreSesion()
         }
     }
 
     private fun configurarMenuLateral() {
-        navigationView.setNavigationItemSelectedListener { item ->
+        navigationView
+            .setNavigationItemSelectedListener { item ->
 
-            when (item.itemId) {
-                R.id.nav_inicio -> {
-                    mostrarFragmento(
-                        fragment = InicioFragment(),
-                        titulo = "Inicio",
-                        menuItemId = R.id.nav_inicio
-                    )
+                when (item.itemId) {
+                    R.id.nav_inicio -> {
+                        mostrarFragmento(
+                            fragment =
+                                InicioFragment(),
+                            titulo =
+                                "Inicio",
+                            menuItemId =
+                                R.id.nav_inicio
+                        )
+                    }
+
+                    R.id.nav_mi_vehiculo -> {
+                        mostrarFragmento(
+                            fragment =
+                                MiVehiculoFragment(),
+                            titulo =
+                                "Mi vehículo",
+                            menuItemId =
+                                R.id.nav_mi_vehiculo
+                        )
+                    }
+
+                    R.id.nav_acerca -> {
+                        mostrarFragmento(
+                            fragment =
+                                AcercaFragment(),
+                            titulo =
+                                "Acerca del proyecto",
+                            menuItemId =
+                                R.id.nav_acerca
+                        )
+                    }
+
+                    R.id.nav_cerrar_sesion -> {
+                        mostrarConfirmacionCierreSesion()
+                    }
                 }
 
-                R.id.nav_mi_vehiculo -> {
-                    mostrarFragmento(
-                        fragment = MiVehiculoFragment(),
-                        titulo = "Mi vehículo",
-                        menuItemId = R.id.nav_mi_vehiculo
-                    )
-                }
+                drawerLayout.closeDrawer(
+                    GravityCompat.START
+                )
 
-                R.id.nav_acerca -> {
-                    mostrarFragmento(
-                        fragment = AcercaFragment(),
-                        titulo = "Acerca del proyecto",
-                        menuItemId = R.id.nav_acerca
-                    )
-                }
-
-                R.id.nav_cerrar_sesion -> {
-                    mostrarConfirmacionCierreSesion()
-                }
+                true
             }
-
-            drawerLayout.closeDrawer(
-                GravityCompat.START
-            )
-
-            true
-        }
     }
 
     private fun mostrarFragmento(
@@ -191,15 +320,21 @@ class AlumnoActivity : AppCompatActivity() {
             )
             .commit()
 
-        txtTitulo.text = titulo
-        seccionActualId = menuItemId
+        txtTitulo.text =
+            titulo
+
+        seccionActualId =
+            menuItemId
 
         navigationView.setCheckedItem(
             menuItemId
         )
 
         actualizarEstadoBarraInferior(
-            if (menuItemId == R.id.nav_inicio) {
+            if (
+                menuItemId ==
+                R.id.nav_inicio
+            ) {
                 ESTADO_INICIO
             } else {
                 ESTADO_MENU
@@ -211,78 +346,140 @@ class AlumnoActivity : AppCompatActivity() {
         opcionSeleccionada: String
     ) {
         val colorActivo =
-            Color.parseColor("#512DA8")
+            Color.parseColor(
+                "#512DA8"
+            )
 
         val colorInactivo =
-            Color.parseColor("#A0A0A0")
+            Color.parseColor(
+                "#A0A0A0"
+            )
 
         val colorSalir =
-            Color.parseColor("#C62828")
+            Color.parseColor(
+                "#C62828"
+            )
 
-        imgInicioBottom.setColorFilter(colorInactivo)
-        txtInicioBottom.setTextColor(colorInactivo)
+        imgInicioBottom.setColorFilter(
+            colorInactivo
+        )
 
-        imgMenuBottom.setColorFilter(colorInactivo)
-        txtMenuBottom.setTextColor(colorInactivo)
+        txtInicioBottom.setTextColor(
+            colorInactivo
+        )
 
-        imgSalirBottom.setColorFilter(colorInactivo)
-        txtSalirBottom.setTextColor(colorInactivo)
+        imgMenuBottom.setColorFilter(
+            colorInactivo
+        )
+
+        txtMenuBottom.setTextColor(
+            colorInactivo
+        )
+
+        imgSalirBottom.setColorFilter(
+            colorInactivo
+        )
+
+        txtSalirBottom.setTextColor(
+            colorInactivo
+        )
 
         when (opcionSeleccionada) {
             ESTADO_INICIO -> {
-                imgInicioBottom.setColorFilter(colorActivo)
-                txtInicioBottom.setTextColor(colorActivo)
-                txtInicioBottom.setTypeface(
-                    null,
-                    android.graphics.Typeface.BOLD
-                )
+                imgInicioBottom
+                    .setColorFilter(
+                        colorActivo
+                    )
+
+                txtInicioBottom
+                    .setTextColor(
+                        colorActivo
+                    )
+
+                txtInicioBottom
+                    .setTypeface(
+                        null,
+                        android.graphics
+                            .Typeface.BOLD
+                    )
             }
 
             ESTADO_MENU -> {
-                imgMenuBottom.setColorFilter(colorActivo)
-                txtMenuBottom.setTextColor(colorActivo)
-                txtMenuBottom.setTypeface(
-                    null,
-                    android.graphics.Typeface.BOLD
-                )
+                imgMenuBottom
+                    .setColorFilter(
+                        colorActivo
+                    )
+
+                txtMenuBottom
+                    .setTextColor(
+                        colorActivo
+                    )
+
+                txtMenuBottom
+                    .setTypeface(
+                        null,
+                        android.graphics
+                            .Typeface.BOLD
+                    )
             }
 
             ESTADO_SALIR -> {
-                imgSalirBottom.setColorFilter(colorSalir)
-                txtSalirBottom.setTextColor(colorSalir)
-                txtSalirBottom.setTypeface(
-                    null,
-                    android.graphics.Typeface.BOLD
-                )
+                imgSalirBottom
+                    .setColorFilter(
+                        colorSalir
+                    )
+
+                txtSalirBottom
+                    .setTextColor(
+                        colorSalir
+                    )
+
+                txtSalirBottom
+                    .setTypeface(
+                        null,
+                        android.graphics
+                            .Typeface.BOLD
+                    )
             }
         }
     }
 
     private fun restaurarEstadoBarraInferior() {
-        val estado = if (
-            seccionActualId == R.id.nav_inicio
-        ) {
-            ESTADO_INICIO
-        } else {
-            ESTADO_MENU
-        }
+        val estado =
+            if (
+                seccionActualId ==
+                R.id.nav_inicio
+            ) {
+                ESTADO_INICIO
+            } else {
+                ESTADO_MENU
+            }
 
-        actualizarEstadoBarraInferior(estado)
+        actualizarEstadoBarraInferior(
+            estado
+        )
     }
 
     private fun mostrarConfirmacionCierreSesion() {
-        val dialogo = AlertDialog.Builder(this)
-            .setTitle("Cerrar sesión")
-            .setMessage(
-                "¿Está seguro de que desea salir de IDAT Parking?"
-            )
-            .setPositiveButton("Sí") { _, _ ->
-                cerrarSesion()
-            }
-            .setNegativeButton("No") { _, _ ->
-                restaurarEstadoBarraInferior()
-            }
-            .create()
+        val dialogo =
+            AlertDialog.Builder(this)
+                .setTitle(
+                    "Cerrar sesión"
+                )
+                .setMessage(
+                    "¿Está seguro de que desea salir de IDAT Parking?"
+                )
+                .setPositiveButton(
+                    "Sí"
+                ) { _, _ ->
+                    cerrarSesion()
+                }
+                .setNegativeButton(
+                    "No"
+                ) { _, _ ->
+                    restaurarEstadoBarraInferior()
+                }
+                .create()
 
         dialogo.setOnCancelListener {
             restaurarEstadoBarraInferior()
@@ -297,62 +494,82 @@ class AlumnoActivity : AppCompatActivity() {
     }
 
     private fun regresarAlLogin() {
-        val intent = Intent(
-            this,
-            MainActivity::class.java
-        ).apply {
-            flags =
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
+        val intent =
+            Intent(
+                this,
+                MainActivity::class.java
+            ).apply {
+                flags =
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
 
-        startActivity(intent)
+        startActivity(
+            intent
+        )
+
         finish()
     }
 
     private fun configurarBotonAtras() {
-        onBackPressedDispatcher.addCallback(
-            this,
-            object : OnBackPressedCallback(true) {
-
-                override fun handleOnBackPressed() {
-                    if (
-                        drawerLayout.isDrawerOpen(
-                            GravityCompat.START
-                        )
+        onBackPressedDispatcher
+            .addCallback(
+                this,
+                object :
+                    OnBackPressedCallback(
+                        true
                     ) {
-                        drawerLayout.closeDrawer(
-                            GravityCompat.START
-                        )
 
-                        restaurarEstadoBarraInferior()
-                        return
+                    override fun handleOnBackPressed() {
+                        if (
+                            drawerLayout
+                                .isDrawerOpen(
+                                    GravityCompat.START
+                                )
+                        ) {
+                            drawerLayout
+                                .closeDrawer(
+                                    GravityCompat.START
+                                )
+
+                            restaurarEstadoBarraInferior()
+                            return
+                        }
+
+                        if (
+                            seccionActualId !=
+                            R.id.nav_inicio
+                        ) {
+                            mostrarFragmento(
+                                fragment =
+                                    InicioFragment(),
+                                titulo =
+                                    "Inicio",
+                                menuItemId =
+                                    R.id.nav_inicio
+                            )
+
+                            return
+                        }
+
+                        isEnabled =
+                            false
+
+                        onBackPressedDispatcher
+                            .onBackPressed()
                     }
-
-                    if (
-                        seccionActualId != R.id.nav_inicio
-                    ) {
-                        mostrarFragmento(
-                            fragment = InicioFragment(),
-                            titulo = "Inicio",
-                            menuItemId = R.id.nav_inicio
-                        )
-
-                        return
-                    }
-
-                    isEnabled = false
-
-                    onBackPressedDispatcher
-                        .onBackPressed()
                 }
-            }
-        )
+            )
     }
 
     companion object {
-        private const val ESTADO_INICIO = "INICIO"
-        private const val ESTADO_MENU = "MENU"
-        private const val ESTADO_SALIR = "SALIR"
+        private const val ESTADO_INICIO =
+            "INICIO"
+
+        private const val ESTADO_MENU =
+            "MENU"
+
+        private const val ESTADO_SALIR =
+            "SALIR"
     }
 }
